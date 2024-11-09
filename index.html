@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossroads Music</title>
+    <style>
+        /* Green Palette Colors */
+        :root {
+            --primary-green: #4CAF50;
+            --secondary-green: #81C784;
+            --light-green: #C8E6C9;
+            --dark-green: #388E3C;
+            --white: #FFFFFF;
+            --grey: #F5F5F5;
+            --text-color: #333333;
+        }
+
+        /* Global Styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--grey);
+            color: var(--text-color);
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary-green);
+            color: var(--white);
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin: 20px auto;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid var(--primary-green);
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-container input:focus {
+            border-color: var(--dark-green);
+        }
+
+        /* File Grid */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .file-card {
+            background-color: var(--white);
+            border: 2px solid var(--secondary-green);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .file-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .file-icon {
+            font-size: 3em;
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            font-size: 1em;
+            word-wrap: break-word;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 900px;
+            background-color: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .close-btn {
+            color: var(--white);
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2100;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #f1f1f1;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-body img, .modal-body iframe {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .search-container input {
+                font-size: 0.9em;
+            }
+
+            .file-icon {
+                font-size: 2.5em;
+            }
+
+            .close-btn {
+                font-size: 25px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>Crossroads Music List</h1>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search by song name...">
+    </div>
+
+    <!-- File Grid -->
+    <div class="file-grid" id="fileGrid">
+        <!-- File Cards will be dynamically inserted here -->
+    </div>
+
+    <!-- Modal for Full-Screen View -->
+    <div id="fileModal" class="modal">
+        <span class="close-btn">&times;</span>
+        <div class="modal-content">
+            <div class="modal-body" id="modalBody">
+                <!-- Content (Image or PDF) will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array of file objects. Update this array with your actual file names.
+        const files = [
+           // { name: "Banana.pdf", type: "pdf" },
+            { name: "Blessed be the name.jpg", type: "jpg" },
+            { name: "Jesus only Jesus.jpg", type: "jpg" },
+            { name: "Light of the world.jpg", type: "jpg" },
+            
+            // Add more files as needed
+        ];
+
+        // Function to initialize and display the file grid
+        function initializeFileGrid() {
+            const fileGrid = document.getElementById('fileGrid');
+            fileGrid.innerHTML = '';
+
+            // Sort files alphabetically by name
+            const sortedFiles = files.sort((a, b) => a.name.localeCompare(b.name));
+
+            sortedFiles.forEach(file => {
+                const fileCard = document.createElement('div');
+                fileCard.className = 'file-card';
+                fileCard.setAttribute('data-name', file.name.toLowerCase());
+
+                // Determine icon based on file type
+                let icon = '';
+                if (file.type === 'jpg') {
+                    icon = '📷';
+                } else if (file.type === 'pdf') {
+                    icon = '📄';
+                } else {
+                    icon = '📁';
+                }
+
+                fileCard.innerHTML = `
+                    <div class="file-icon">${icon}</div>
+                    <div class="file-name">${file.name}</div>
+                `;
+
+                // Add click event to open modal
+                fileCard.addEventListener('click', () => openModal(file));
+
+                fileGrid.appendChild(fileCard);
+            });
+        }
+
+        // Function to open modal and display the selected file
+        function openModal(file) {
+            const modal = document.getElementById('fileModal');
+            const modalBody = document.getElementById('modalBody');
+
+            // Clear previous content
+            modalBody.innerHTML = '';
+
+            if (file.type === 'jpg') {
+                const img = document.createElement('img');
+                img.src = `files/${file.name}`;
+                img.alt = file.name;
+                modalBody.appendChild(img);
+            } else if (file.type === 'pdf') {
+                const iframe = document.createElement('iframe');
+                iframe.src = `files/${file.name}`;
+                iframe.type = 'application/pdf';
+                modalBody.appendChild(iframe);
+            }
+
+            modal.style.display = 'block';
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            const modal = document.getElementById('fileModal');
+            modal.style.display = 'none';
+        }
+
+        // Event listener for close button
+        document.querySelector('.close-btn').addEventListener('click', closeModal);
+
+        // Event listener for clicks outside the modal content to close the modal
+        window.addEventListener('click', (event) => {
+            const modal = document.getElementById('fileModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Search functionality
+        const searchBar = document.getElementById('searchBar');
+        searchBar.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const fileCards = document.querySelectorAll('.file-card');
+
+            fileCards.forEach(card => {
+                const fileName = card.getAttribute('data-name');
+                if (fileName.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize the file grid on page load
+        document.addEventListener('DOMContentLoaded', initializeFileGrid);
+    </script>
+
+</body>
+</html>
